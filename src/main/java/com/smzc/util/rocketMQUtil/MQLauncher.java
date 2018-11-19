@@ -2,7 +2,6 @@ package com.smzc.util.rocketMQUtil;
 
 import com.smzc.util.rocketMQUtil.impl.MQConsumerImpl;
 
-import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEvent;
@@ -46,7 +45,7 @@ public class MQLauncher implements ApplicationListener {
                 this.mqConsumer = new MQConsumerImpl();;
                 event.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(this.mqConsumer);
             }
-            this.mqConsumer.startListener();
+            this.mqConsumer.start();
         } catch (Exception ex) {
             this.log.error(ex.getMessage(), ex);
         }
@@ -56,7 +55,7 @@ public class MQLauncher implements ApplicationListener {
     public void stop(ApplicationEvent event) {
         try {
             if (this.mqConsumer != null) {
-                this.mqConsumer.stopListener();
+                this.mqConsumer.shutdown();
             }
         } catch (Exception ex) {
             this.log.error(ex.getMessage(), ex);

@@ -1,6 +1,7 @@
 package com.smzc.util.rocketMQUtil;
 
 
+import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 
@@ -15,11 +16,24 @@ import org.apache.rocketmq.common.message.Message;
  **/
 public interface MQProducer {
 
-    void sendMsg(Message msg) throws Exception;
+    /**
+     * 发送无序
+     */
+    void sendMsg(final Message msg);
 
-    void sendOrderMsg(Message msg, Integer order) throws Exception;
+    /**
+     * 发送有序消息
+     */
+    SendResult sendOrderMsg(final Message msg, final Integer shardingKey);
 
-    SendResult sendOrderMsg(Message msg, String order) throws Exception;
+    SendResult sendOrderMsg(final Message msg, final String shardingKey);
+
+    /**
+     * 异步发送消息
+     */
+    void sendAsync(final Message msg, final SendCallback sendCallback);
+
+    void start() throws Exception;
 
     void shutdown() throws Exception;
 }

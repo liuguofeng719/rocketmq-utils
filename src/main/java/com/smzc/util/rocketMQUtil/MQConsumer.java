@@ -10,7 +10,8 @@ package com.smzc.util.rocketMQUtil;
  * @see JDK 1.7
  **/
 public interface MQConsumer {
-    void startListener() throws Exception;
 
-    void stopListener() throws Exception;
+    void start() throws Exception;
+
+    void shutdown() throws Exception;
 }

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="producerA" class="com.smzc.util.rocketMQUtil.impl.MQProducerImpl" init-method="start"
+          destroy-method="shutdown">
+        <property name="instanceName" value="instanceA"/>
+        <property name="namesrvAddr" value="10.211.55.4:9876"/>
+        <property name="producerGroup" value="producerGroupA"/>
+    </bean>
+
+    <bean id="consumerA" class="com.smzc.util.rocketMQUtil.impl.MQConsumerImpl" init-method="start"
+          destroy-method="shutdown">
+        <property name="namesrvAddr" value="10.211.55.4:9876"/>
+        <property name="instanceName" value="consumerA"/>
+        <property name="consumerGroup" value="consumerGroupA"/>
+        <property name="consumeFromWhere" value="CONSUME_FROM_FIRST_OFFSET"/>
+        <property name="mqListeners">
+            <list>
+                <ref bean="MyLisenterA"/>
+            </list>
+        </property>
+        <property name="order" value="false"/>
+    </bean>
+
+    <bean id="MyLisenterA" class="com.smzc.util.rocketMQUtil.test.MyLisenterA">
+    </bean>
+
+    <bean id="producerB" class="com.smzc.util.rocketMQUtil.impl.MQProducerImpl" init-method="start"
+          destroy-method="shutdown">
+        <property name="instanceName" value="instanceB"/>
+        <property name="namesrvAddr" value="10.211.55.5:9876"/>
+        <property name="producerGroup" value="producerGroupB"/>
+    </bean>
+
+    <bean id="consumerB" class="com.smzc.util.rocketMQUtil.impl.MQConsumerImpl" init-method="start"
+          destroy-method="shutdown">
+        <property name="namesrvAddr" value="10.211.55.5:9876"/>
+        <property name="instanceName" value="consumerB"/>
+        <property name="consumerGroup" value="consumerGroupB"/>
+        <property name="consumeFromWhere" value="CONSUME_FROM_FIRST_OFFSET"/>
+        <property name="mqListeners">
+            <list>
+                <ref bean="MyLisenterB"/>
+            </list>
+        </property>
+        <property name="order" value="false"/>
+    </bean>
+
+    <bean id="MyLisenterB" class="com.smzc.util.rocketMQUtil.test.MyLisenterB"/>
+
+    <bean id="consumerC" class="com.smzc.util.rocketMQUtil.impl.MQConsumerImpl" init-method="start"
+          destroy-method="shutdown">
+        <property name="namesrvAddr" value="10.211.55.5:9876"/>
+        <property name="instanceName" value="consumerB"/>
+        <property name="consumerGroup" value="consumerGroupC"/>
+        <property name="consumeFromWhere" value="CONSUME_FROM_FIRST_OFFSET"/>
+        <property name="mqListeners">
+            <list>
+                <ref bean="MyLisenterCOrder"/>
+            </list>
+        </property>
+        <property name="order" value="true"/>
+    </bean>
+
+    <bean id="MyLisenterCOrder" class="com.smzc.util.rocketMQUtil.test.MyLisenterCOrder"/>
+</beans>
