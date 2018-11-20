@@ -19,6 +19,7 @@ import org.springframework.context.event.ContextStoppedEvent;
  * @createtime 2017/8/20 下午4:40
  * @see JDK 1.7
  **/
+@Deprecated
 public class MQLauncher implements ApplicationListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

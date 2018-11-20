@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -75,45 +77,61 @@ public class MQConsumerImpl implements MQConsumer {
      * Max defaultMQPushConsumer thread number
      */
     private int consumeThreadMax = 64;
-
+    /**
+     * 消息模型
+     */
     private MessageModel messageModel = MessageModel.CLUSTERING;
 
     private ConsumeFromWhere consumeFromWhere = ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET;
 
-    public void start() throws Exception {
-        defaultMQPushConsumer = new DefaultMQPushConsumer(consumerGroup);
-        if (StringUtils.isBlank(namesrvAddr)) {
-            throw new Exception("MQ服务器地址为空!");
-        }
-        defaultMQPushConsumer.setNamesrvAddr(namesrvAddr);
-        if (StringUtils.isNotBlank(instanceName)) {
-            defaultMQPushConsumer.setInstanceName(instanceName);
-        }
-        defaultMQPushConsumer.setConsumeThreadMin(getConsumeThreadMin());
-        defaultMQPushConsumer.setConsumeThreadMax(getConsumeThreadMax());
-        defaultMQPushConsumer.setMessageModel(messageModel);
-        if (this.mqListeners != null && this.mqListeners.size() > 0) {
-            try {
-                if (logger.isInfoEnabled()) {
-                    logger.info("开始启动MQ客户端!");
-                }
+    private Lock lock = new ReentrantLock();
 
-                this.initListenerMap();
-                this.subscribe();
-                this.registerListener();
-                if (this.started.compareAndSet(false, true)) {
-                    defaultMQPushConsumer.start();
+    public void start() throws Exception {
+
+        try {
+            lock.lock();
+            if (defaultMQPushConsumer == null) {
+                defaultMQPushConsumer = new DefaultMQPushConsumer(consumerGroup);
+            }
+
+            if (StringUtils.isBlank(namesrvAddr)) {
+                throw new Exception("MQ服务器地址为空!");
+            }
+
+            defaultMQPushConsumer.setNamesrvAddr(namesrvAddr);
+
+            if (StringUtils.isNotBlank(instanceName)) {
+                defaultMQPushConsumer.setInstanceName(instanceName);
+            }
+            defaultMQPushConsumer.setConsumeThreadMin(getConsumeThreadMin());
+            defaultMQPushConsumer.setConsumeThreadMax(getConsumeThreadMax());
+            defaultMQPushConsumer.setMessageModel(messageModel);
+
+            if (this.mqListeners != null && this.mqListeners.size() > 0) {
+                try {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("开始启动MQ客户端!");
+                    }
+
+                    this.initListenerMap();
+                    this.subscribe();
+                    this.registerListener();
+                    if (this.started.compareAndSet(false, true)) {
+                        defaultMQPushConsumer.start();
+                    }
+                    if (logger.isInfoEnabled()) {
+                        logger.info("MQ Client 启动成功!");
+                    }
+                } catch (MQClientException ex) {
+                    logger.error("MQ Client启动失败!" + ex.getMessage(), ex);
                 }
+            } else {
                 if (logger.isInfoEnabled()) {
-                    logger.info("MQ Client 启动成功!");
+                    logger.info("没有监听器, 不启动MQ消息监听!");
                 }
-            } catch (MQClientException ex) {
-                logger.error("MQ Client启动失败!" + ex.getMessage(), ex);
             }
-        } else {
-            if (logger.isInfoEnabled()) {
-                logger.info("没有监听器, 不启动MQ消息监听!");
-            }
+        } finally {
+            lock.unlock();
         }
     }
 
